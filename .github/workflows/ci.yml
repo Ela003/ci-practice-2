@@ -1,4 +1,4 @@
-name: CI + GitHub Pages + Coolify
+name: CI + Coolify
 
 on:
   push:
@@ -30,34 +30,6 @@ jobs:
 
       - name: Run test
         run: node test.js
-
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: test
-
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Get code
-        uses: actions/checkout@v4
-
-      - name: Setup GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload website
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: .
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
 
   coolify:
     runs-on: ubuntu-latest
