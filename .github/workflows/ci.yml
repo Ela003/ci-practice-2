@@ -1,4 +1,4 @@
-name: CI + GitHub Pages
+name: CI + GitHub Pages + Coolify
 
 on:
   push:
