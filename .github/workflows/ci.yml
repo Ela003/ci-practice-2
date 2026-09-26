@@ -66,3 +66,25 @@ jobs:
             --request GET \
             "${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}" \
             --header "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
+
+    rollback:
+    name: Rollback Coolify
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+
+      - name: Rollback application
+        env:
+          COOLIFY_API_URL: ${{ secrets.COOLIFY_API_URL }}
+          COOLIFY_APP_UUID: ${{ secrets.COOLIFY_APP_UUID }}
+          COOLIFY_ROLLBACK_TOKEN: ${{ secrets.COOLIFY_ROLLBACK_TOKEN }}
+
+        run: |
+          curl --fail-with-body \
+            --request POST \
+            "${COOLIFY_API_URL}/api/v1/applications/${COOLIFY_APP_UUID}/rollback" \
+            --header "Authorization: Bearer ${COOLIFY_ROLLBACK_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data '{"commit":"PREVIOUS_COMMIT_OR_IMAGE_TAG"}'
