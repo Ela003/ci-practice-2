@@ -9,36 +9,60 @@ on:
     branches:
       - main
 
+  workflow_dispatch:
+
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
 
+  # ========================================
+  # 1. CI TEST
+  # ========================================
   test:
+    name: Run CI Test
+
     runs-on: ubuntu-latest
 
     steps:
-      - name: Get code
+
+      # Get repository code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Install Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
+      # Run test
       - name: Run test
         run: node test.js
 
+      # CI success
+      - name: CI Success
+        run: echo "CI passed successfully"
+
+
+  # ========================================
+  # 2. DEPLOY TO COOLIFY
+  # ========================================
   coolify:
+    name: Deploy to Coolify
+
     runs-on: ubuntu-latest
+
     needs: test
 
+    # Deploy only when main receives a push
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
+
       - name: Deploy to Coolify
         run: |
-          curl --fail --request GET "${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}" \
+          curl --fail-with-body \
+            --request GET \
+            "${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}" \
             --header "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
