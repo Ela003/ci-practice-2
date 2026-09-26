@@ -10,6 +10,11 @@ on:
       - main
 
   workflow_dispatch:
+    inputs:
+      rollback_commit:
+        description: "Commit or image tag to rollback to"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -21,26 +26,21 @@ jobs:
   # ========================================
   test:
     name: Run CI Test
-
     runs-on: ubuntu-latest
 
     steps:
 
-      # Get repository code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Install Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      # Run test
       - name: Run test
         run: node test.js
 
-      # CI success
       - name: CI Success
         run: echo "CI passed successfully"
 
@@ -50,12 +50,10 @@ jobs:
   # ========================================
   coolify:
     name: Deploy to Coolify
-
     runs-on: ubuntu-latest
 
     needs: test
 
-    # Deploy only when main receives a push
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
@@ -67,7 +65,11 @@ jobs:
             "${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}" \
             --header "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
 
-    rollback:
+
+  # ========================================
+  # 3. ROLLBACK COOLIFY
+  # ========================================
+  rollback:
     name: Rollback Coolify
     runs-on: ubuntu-latest
 
@@ -80,6 +82,7 @@ jobs:
           COOLIFY_API_URL: ${{ secrets.COOLIFY_API_URL }}
           COOLIFY_APP_UUID: ${{ secrets.COOLIFY_APP_UUID }}
           COOLIFY_ROLLBACK_TOKEN: ${{ secrets.COOLIFY_ROLLBACK_TOKEN }}
+          ROLLBACK_COMMIT: ${{ inputs.rollback_commit }}
 
         run: |
           curl --fail-with-body \
@@ -87,4 +90,4 @@ jobs:
             "${COOLIFY_API_URL}/api/v1/applications/${COOLIFY_APP_UUID}/rollback" \
             --header "Authorization: Bearer ${COOLIFY_ROLLBACK_TOKEN}" \
             --header "Content-Type: application/json" \
-            --data '{"commit":"PREVIOUS_COMMIT_OR_IMAGE_TAG"}'
+            --data "{\"commit\":\"${ROLLBACK_COMMIT}\"}"
