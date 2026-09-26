@@ -58,7 +58,8 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-    coolify:
+
+  coolify:
     runs-on: ubuntu-latest
     needs: test
 
